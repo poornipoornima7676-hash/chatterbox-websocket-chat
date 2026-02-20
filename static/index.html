@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chatterbox Live Chat</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+
+body {
+    background: #0f1220;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Chat Card */
+.chat-card {
+    width: 420px;
+    height: 600px;
+    background: #1b1f36;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative; 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+/* Header */
+.chat-header {
+    padding: 16px;
+    background: linear-gradient(135deg, #5b7cfa, #7f5bfa);
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Messages */
+.chat-body {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+/* Bubbles */
+.message {
+    max-width: 70%;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.me {
+    background: #5b7cfa;
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+}
+
+.other {
+    background: #2a2f55;
+    color: #ddd;
+    border-bottom-left-radius: 4px;
+}
+
+/* Username */
+.username {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 2px;
+}
+
+/* System message */
+.system {
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    margin: 10px 0;
+}
+
+/* Footer */
+.chat-footer {
+    display: flex;
+    padding: 10px;
+    background: #161a2e;
+}
+
+.chat-footer input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+    background: #2a2f55;
+    color: white;
+}
+
+.chat-footer button {
+    margin-left: 8px;
+    background: #5b7cfa;
+    border: none;
+    color: white;
+    padding: 0 16px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/* Login */
+.login {
+    padding: 15px;
+    background: #161a2e;
+}
+
+.login input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    margin-bottom: 10px;
+}
+
+.login button {
+    width: 100%;
+    padding: 10px;
+    background: #5b7cfa;
+    border: none;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.users-card {
+    width: 200px;
+    height: 600px;
+    background: #1b1f36;
+    border-radius: 18px;
+    padding: 15px;
+    color: white;
+}
+
+.users-card h3 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.users-card ul {
+    list-style: none;
+    padding: 0;
+}
+
+.users-card li {
+    padding: 6px 0;
+    border-bottom: 1px solid #2a2f55;
+    font-size: 14px;
+}
+.typing-indicator {
+    position: absolute;
+    bottom: 70px;              /* 👈 sits ABOVE input bar */
+    left: 0;
+    width: 100%;
+    padding: 4px 15px;
+    font-size: 12px;
+    color: #aaa;
+    background: transparent;
+    pointer-events: none;
+}
+.username {
+    font-size: 11px;
+    color: #ccc;
+    margin-bottom: 2px;
+}
+
+.time {
+    font-size: 10px;
+    color: #aaa;
+    text-align: right;
+    margin-top: 4px;
+}
+
+.text {
+    font-size: 14px;
+}
+
+.date-separator {
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    margin: 15px 0;
+    position: relative;
+}
+
+.date-separator::before,
+.date-separator::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: #2a2f55;
+}
+
+.date-separator::before {
+    left: 0;
+}
+
+.date-separator::after {
+    right: 0;
+}
+.emoji-panel {
+    position: absolute;
+    bottom: 70px;
+    left: 10px;
+    background: #2a2f55;
+    border-radius: 12px;
+    padding: 8px;
+    display: none;
+    max-width: 260px;
+}
+
+.emoji-panel span {
+    font-size: 22px;
+    padding: 6px;
+    cursor: pointer;
+}
+
+.emoji-panel span:hover {
+    background: #3b4070;
+    border-radius: 8px;
+}
+.actions {
+    font-size: 12px;
+    text-align: right;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.actions span {
+    margin-left: 6px;
+}
+.status {
+    font-size: 14px;
+    margin-left: 6px;
+    color: white;
+}
+
+.delivered::after{
+    content: "○"; 
+}
+
+.seen::after {
+    content: "●" 
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ADD this inside <body> instead of single card -->
+
+<div style="display:flex; gap:15px;">
+
+<!-- CHAT -->
+<div class="chat-card">
+    <div class="chat-header">💬 Chatterbox Live Chat</div>
+
+    <div class="login" id="loginBox">
+        <input id="username" placeholder="Enter username">
+        <button onclick="login()">Join Chat</button>
+    </div>
+    <div id="typing" class="typing-indicator"></div>
+
+
+    <div class="chat-body" id="messages"></div>
+
+    <div id="typing" class="typing-indicator"></div>
+
+    <div class="chat-footer">
+        <button onclick="toggleEmoji()">😊</button>
+        <input id="messageInput" placeholder="Type your message..." disabled>
+        <button onclick="sendMessage()">➤</button>
+    </div>
+    <div id="emojiPanel" class="emoji-panel"></div>
+</div>
+
+<!-- ONLINE USERS -->
+<div class="users-card">
+    <h3>🟢 Online</h3>
+    <ul id="users"></ul>
+</div>
+
+</div>
+
+<script>
+let lastSeenMessageId = null;
+let socket;
+let currentUser = "";
+let typingTimer;
+let lastRenderedDate = null;
+
+const deletedMessages = new Set();
+
+function login() {
+    currentUser = document.getElementById("username").value.trim();
+    if (!currentUser) return;
+
+    lastRenderedDate = null;
+    document.getElementById("messages").innerHTML = "";
+
+    fetch(`/login/${currentUser}`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            socket = new WebSocket(`ws://${location.host}/ws/${data.token}`);
+
+            socket.onmessage = (event) => {
+                const data = event.data;
+
+                if (data.startsWith("__seen__:")) {
+                    const id = data.replace("__seen__:", "");
+                    const status = document.querySelector(`[data-status-id="${id}"]`);
+
+                    if (status) {
+                        
+                        status.classList.remove("delivered");
+                        status.classList.add("seen");
+                    }
+                    return;
+                }
+
+                if (data.startsWith("__users__:")) {
+                    updateUsers(data.replace("__users__:", ""));
+                    return;
+                }
+
+                if (data.startsWith("__system__:")) {
+                    renderSystemMessage(data.replace("__system__:", ""));
+                    return;
+                }
+
+                if (data.startsWith("__typing__:")) {
+                    showTyping(data.replace("__typing__:", ""));
+                    return;
+                }
+
+                if (data.startsWith("__stop__:")) {
+                    hideTyping();
+                    return;
+                }
+                // ✏️ EDIT MESSAGE UPDATE
+                if (data.startsWith("__edit__:")) {
+                    const [id, newText] = data.replace("__edit__:", "").split("|");
+                    const msgText = document.querySelector(
+                        `[data-id='${id}'] .text`
+                );
+                if (msgText) {
+                    msgText.innerText = newText + " (edited)";
+                }
+                return;
+                }
+
+                // 🗑️ DELETE MESSAGE UPDATE
+                if (data.startsWith("__delete__:")) {
+                    const id = data.replace("__delete__:", "");
+                    deletedMessages.add(id);
+                    const msgDiv = document.querySelector(`[data-id='${id}']`);
+                    if (!msgDiv) return;
+                    applyDeleteUI(msgDiv);                
+                    return;
+                }
+                // chat message: user|msg|time
+                const parts = data.split("|");
+                if (parts.length === 5 && !data.startsWith("__")) {
+                    renderMessage(data);
+                }       
+                
+            };
+
+            document.getElementById("loginBox").style.display = "none";
+            document.getElementById("messageInput").disabled = false;
+        });
+}
+
+function sendMessage() {
+    const input = document.getElementById("messageInput");
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    socket.send("__stop__");
+    socket.send(msg);
+    input.value = "";
+    document.getElementById("emojiPanel").style.display = "none";
+}
+
+function renderMessage(data) {
+    const parts = data.split("|");
+    if (parts.length !== 5) return;
+
+    const [id, user, message, time, date] = parts;
+
+    // 🔹 Render date separator
+    if (lastRenderedDate !== date) {
+        renderDateSeparator(date);
+        lastRenderedDate = date;
+    }
+
+    const box = document.getElementById("messages");
+    const div = document.createElement("div");
+    div.dataset.id = id;
+
+    const isMe = user === currentUser;
+    div.className = "message " + (isMe ? "me" : "other");
+
+    div.innerHTML = `
+        ${!isMe ? `<div class="username">${user}</div>` : ""}
+        <div class="text">${message}</div>
+        <div class="time">
+            ${time}
+            ${isMe ? `<span class="status delivered" data-status-id="${id}"></span>` : ""}
+        </div>
+        ${isMe && message !== "This message was deleted" ? `
+            <div class="actions">
+                <span onclick="editMessage(${id})">✏️</span>
+                <span onclick="deleteMessage(${id})">🗑️</span>
+            </div>` : ""}
+    `;
+
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+
+    // ✅ SEND SEEN ONLY ONCE
+    if (user !== currentUser && lastSeenMessageId !== id) {
+        socket.send(`__seen__:${id}`);
+        lastSeenMessageId = id;
+    }
+}
+
+
+function renderSystemMessage(text) {
+    const box = document.getElementById("messages");
+    const div = document.createElement("div");
+    div.className = "system";
+    div.innerText = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+function updateUsers(data) {
+    const list = document.getElementById("users");
+    list.innerHTML = "";
+    if (!data) return;
+
+    data.split(",").forEach(user => {
+        const li = document.createElement("li");
+        li.innerText = user;
+        list.appendChild(li);
+    });
+}
+
+function showTyping(user) {
+    if (user === currentUser) return;
+    document.getElementById("typing").innerText = `${user} is typing...`;
+}
+
+function hideTyping() {
+    document.getElementById("typing").innerText = "";
+}
+
+document.getElementById("messageInput").addEventListener("input", () => {
+    socket.send("__typing__");
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => socket.send("__stop__"), 800);
+});
+// ✅ SEND MESSAGE ON ENTER KEY
+document.getElementById("messageInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();   // stop new line
+        sendMessage();        // send message
+    }
+});
+
+function renderDateSeparator(date) {
+    const box = document.getElementById("messages");
+    const div = document.createElement("div");
+    div.className = "date-separator";
+
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+    let label = date;
+    if (date === today) label = "Today";
+    else if (date === yesterday) label = "Yesterday";
+
+    div.innerText = label;
+    box.appendChild(div);
+}
+const emojis = [
+    "😀","😃","😄","😁","😆","😂","🤣","🔗",
+    "😊","😍","😘","😜","🤩","😎","🥳","🎉",
+    "👍","🙏","👏","🔥","❤️","💯","📌"
+];
+
+const emojiPanel = document.getElementById("emojiPanel");
+
+emojis.forEach(e => {
+    const span = document.createElement("span");
+    span.innerText = e;
+    span.onclick = () => addEmoji(e);
+    emojiPanel.appendChild(span);
+});
+
+function toggleEmoji() {
+    emojiPanel.style.display =
+        emojiPanel.style.display === "none" ? "block" : "none";
+}
+
+function addEmoji(emoji) {
+    const input = document.getElementById("messageInput");
+    input.value += emoji;
+    input.focus();
+}
+function editMessage(id) {
+    const msgDiv = document.querySelector(`[data-id='${id}'] .text`);
+    const newText = prompt("Edit message:", msgDiv.innerText);
+    if (!newText) return;
+
+    socket.send(`__edit__:${id}|${newText}`);
+}
+function deleteMessage(id) {
+    if (!confirm("Delete this message?")) return;
+    socket.send(`__delete__:${id}`);
+}
+function applyDeleteUI(msgDiv) {
+    const msgText = msgDiv.querySelector(".text");
+    if (!msgText) return;
+
+    msgText.innerText = "This message was deleted";
+    msgText.style.fontStyle = "italic";
+    msgText.style.color = "#aaa";
+
+    const actions = msgDiv.querySelector(".actions");
+    if (actions) actions.remove();
+}
+
+</script>
+
+
+</body>
+</html>
